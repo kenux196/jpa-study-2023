@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import study.kenux.jpa.domain.Member;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -29,6 +31,9 @@ class MemberRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
 
     @Test
@@ -83,10 +88,27 @@ class MemberRepositoryTest {
     @Test
     void saveAll() {
         final long start = System.currentTimeMillis();
-        final List<Member> memberList = createMemberList(1000);
+        final List<Member> memberList = createMemberList(10000);
         memberRepository.saveAll(memberList);
-        final Instant end = Instant.now();
         log.info("time = {}", System.currentTimeMillis() - start);
+    }
+
+    @Test
+    void bulkSave() {
+        final long start = System.currentTimeMillis();
+        final String query = "insert into member (name, age) " +
+                "values (?, ?)";
+        final List<Member> memberList = createMemberList(10000);
+        jdbcTemplate.batchUpdate(query, memberList, 100, (ps, argument) -> {
+            ps.setString(1, argument.getName());
+            ps.setInt(2, argument.getAge());
+        });
+        log.info("time = {}", System.currentTimeMillis() - start);
+        em.clear();
+
+        final List<Member> result = memberRepository.findAll();
+        assertThat(result).hasSize(memberList.size());
+        log.info("member(0) = {}", result.get(0));
     }
 
     private List<Member> createMemberList(int count) {
