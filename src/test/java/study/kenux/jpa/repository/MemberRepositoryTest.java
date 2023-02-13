@@ -1,7 +1,6 @@
 package study.kenux.jpa.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -57,26 +56,13 @@ class MemberRepositoryTest {
     }
 
     @Test
-    void transaction_commit() {
-        final EntityTransaction transaction = em.getTransaction();
-        transaction.begin();
-        try {
-            final Member member = new Member("member1", 11);
-            em.persist(member);
-            transaction.commit();
-        } catch (Exception e) {
-            transaction.rollback();
-        } finally {
-            em.close();
-        }
-    }
-
-    @Test
+    @Transactional
     void detachedEntityIsNotUpdate() {
         final Member member = new Member("member1", 11);
         memberRepository.save(member);
         em.detach(member);
         member.updateAge(12);
+        log.info("call em.flush");
         em.flush();
 
         final Optional<Member> findMember = memberRepository.findById(member.getId());
