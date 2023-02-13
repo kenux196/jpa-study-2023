@@ -24,6 +24,11 @@ public class Member {
     @Column(name = "age", nullable = false)
     private Integer age;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    @ToString.Exclude
+    private Team team;
+
     public Member(String name, Integer age) {
         this.name = name;
         this.age = age;
@@ -35,5 +40,9 @@ public class Member {
 
     public void updateAge(Integer age) {
         this.age = age;
+    }
+
+    public void changeTeam(Team team) {
+        this.team = team;
     }
 }

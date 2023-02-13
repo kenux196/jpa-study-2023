@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import study.kenux.jpa.domain.Member;
+import study.kenux.jpa.domain.Team;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +29,12 @@ class MemberRepositoryTest {
 
     @PersistenceContext
     EntityManager em;
-
     @Autowired
     MemberRepository memberRepository;
-
+    @Autowired
+    TeamRepository teamRepository;
     @Autowired
     JdbcTemplate jdbcTemplate;
-
 
     @Test
     void memberSave() {
@@ -123,6 +123,7 @@ class MemberRepositoryTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
 //        final PageRequest pageRequest = PageRequest.of(0, 10);
         final Page<Member> pagedResult = memberRepository.findAll(pageable);
+        assertThat(pagedResult.getContent()).hasSize(10);
         log.info("result = {}", pagedResult);
         ObjectMapper objectMapper = new ObjectMapper();
         final String json = objectMapper.writeValueAsString(pagedResult);
@@ -136,5 +137,16 @@ class MemberRepositoryTest {
             members.add(member);
         }
         return members;
+    }
+
+    @Test
+    void setTeamForMember() {
+        final Team team = new Team("team1");
+        teamRepository.save(team);
+        final Member member = new Member("member1", 11);
+        member.changeTeam(team);
+        memberRepository.save(member);
+
+        assertThat(member.getTeam().getId()).isEqualTo(team.getId());
     }
 }
