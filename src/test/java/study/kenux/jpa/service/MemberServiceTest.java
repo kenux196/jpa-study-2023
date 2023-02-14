@@ -1,14 +1,13 @@
 package study.kenux.jpa.service;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationContextFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import study.kenux.jpa.domain.Member;
 import study.kenux.jpa.domain.Team;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -31,11 +29,15 @@ class MemberServiceTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+    @Autowired
+    EntityManager em;
 
 
-    @BeforeAll
-    void beforeAll() {
-        final InitData initData = new InitData(memberRepository, teamRepository);
+    @BeforeEach
+    void beforeEach() {
+        final InitData initData = new InitData(memberRepository, teamRepository, em);
         initData.initTestData();
     }
 
@@ -44,24 +46,110 @@ class MemberServiceTest {
         final List<Member> members = memberRepository.findAll();
         assertThat(members).hasSize(InitData.MEMBER_COUNT);
     }
-    
-    public static class InitData {
 
-        public static final int TEAM_COUNT = 3;
-        public static final int MEMBER_COUNT = 10;
+    @Test
+    void jpql_join() {
+        final List<Member> members = memberRepository.findAllJoin();
+        assertThat(members).hasSize(InitData.MEMBER_COUNT);
+    }
+
+    @Test
+    void jpql_fetchJoin() {
+        final List<Member> allFetchJoin = memberRepository.findAllFetchJoin();
+        assertThat(allFetchJoin).hasSize(InitData.MEMBER_COUNT);
+    }
+
+    @Test
+    void findTeam1() {
+        final List<Team> teamList = teamRepository.findAll();
+        System.out.println("teamList.size() = " + teamList.size());
+    }
+
+    @Test
+    void findTeam2() {
+        final List<Team> teams = teamRepository.findAllWithJPQL();
+        System.out.println("teams.size() = " + teams.size());
+    }
+
+    @Test
+    void findTeam3() {
+        final List<Team> teams = teamRepository.findAllWithJPQL_fetchJoin();
+        System.out.println("teams.size() = " + teams.size());
+    }
+
+    @Test
+    void findTeam4() {
+        final List<Team> teams = teamRepository.findAll3();
+        System.out.println("teams.size() = " + teams.size());
+    }
+
+    @Test
+    @Transactional
+    void findTeamWithMember() {
+        String query = "select t from Team t " +
+                "join fetch t.members m ";
+        final List<Team> resultList = em.createQuery(query, Team.class)
+                .getResultList();
+        System.out.println("resultList = " + resultList);
+        em.clear();
+
+        // fetch join 을 페이징하므로 다음의 경고가 로그에 나온다.
+        // firstResult/maxResults specified with collection fetch; applying in memory => 안티패턴이다.
+        final List<Team> pagedResult = em.createQuery(query, Team.class)
+                .setFirstResult(0)
+                .setMaxResults(10)
+                .getResultList();
+        System.out.println("pagedResult = " + pagedResult);
+        em.clear();
+
+        String query2 = "select t from Team t";
+
+        final List<Team> resultList1 = em.createQuery(query2, Team.class)
+                .getResultList();
+        for (Team team : resultList1) {
+            System.out.println("team.getMembers() = " + team.getMembers());
+        }
+        em.clear();
+
+        final List<Team> pagedResult1 = em.createQuery(query2, Team.class)
+                .setFirstResult(1)
+                .setMaxResults(10)
+                .getResultList();
+        System.out.println("pagedResult = " + pagedResult1);
+        em.clear();
+    }
+
+    @Test
+//    @Transactional
+    void using_batch_size_paging() {
+        String query2 = "select t from Team t";
+        final List<Team> pagedResult1 = em.createQuery(query2, Team.class)
+                .setFirstResult(1)
+                .setMaxResults(10)
+                .getResultList();
+        System.out.println("pagedResult = " + pagedResult1);
+    }
+
+    public class InitData {
+
+        public static final int TEAM_COUNT = 1000;
+        public static final int MEMBER_COUNT = 10000;
 
         private final MemberRepository memberRepository;
         private final TeamRepository teamRepository;
+        private final EntityManager em;
 
-        public InitData(MemberRepository memberRepository, TeamRepository teamRepository) {
+        public InitData(MemberRepository memberRepository, TeamRepository teamRepository, EntityManager em) {
             this.memberRepository = memberRepository;
             this.teamRepository = teamRepository;
+            this.em = em;
         }
 
         @Transactional
         public void initTestData() {
             createTeam();
             createMember();
+            em.clear();
         }
 
         private void createTeam() {
@@ -79,8 +167,7 @@ class MemberServiceTest {
             for (int i = 0; i < MEMBER_COUNT; i++) {
                 final int num = i % teamSize;
                 final Team team = teamList.get(num);
-                final Member member = new Member("member" + i, i + 10);
-                member.changeTeam(team);
+                final Member member = new Member("member" + i, i + 10, team);
                 memberList.add(member);
             }
             memberRepository.saveAll(memberList);
