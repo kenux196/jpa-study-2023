@@ -1,12 +1,18 @@
 package study.kenux.jpa.service;
 
 import jakarta.persistence.EntityManager;
+import lombok.Builder;
+import lombok.Data;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import study.kenux.jpa.domain.Member;
@@ -120,14 +126,47 @@ class MemberServiceTest {
     }
 
     @Test
-//    @Transactional
+    @Transactional
     void using_batch_size_paging() {
+        em.clear();
         String query2 = "select t from Team t";
         final List<Team> pagedResult1 = em.createQuery(query2, Team.class)
                 .setFirstResult(1)
                 .setMaxResults(10)
                 .getResultList();
         System.out.println("pagedResult = " + pagedResult1);
+        for (Team team : pagedResult1) {
+            for (Member member : team.getMembers()) {
+                System.out.println("member = " + member.getName());
+            }
+        }
+    }
+
+    @Test
+    @Transactional
+    void getMembersWithPage() {
+        final Pageable pageable = PageRequest.of(1, 10);
+        final Page<Member> members = memberService.getMembers(pageable);
+
+        final List<MemberDto> memberDtos = members.stream()
+                .map(member -> MemberDto.builder()
+                        .id(member.getId())
+                        .name(member.getName())
+                        .age(member.getAge())
+                        .teamName(member.getTeam().getName())
+                        .build())
+                .toList();
+        Page<MemberDto> result = new PageImpl<>(memberDtos, pageable, members.getTotalElements());
+        System.out.println("result = " + result);
+    }
+
+    @Data
+    @Builder
+    public static class MemberDto {
+        Long id;
+        String name;
+        Integer age;
+        String teamName;
     }
 
     public class InitData {
@@ -145,7 +184,7 @@ class MemberServiceTest {
             this.em = em;
         }
 
-        @Transactional
+//        @Transactional
         public void initTestData() {
             createTeam();
             createMember();

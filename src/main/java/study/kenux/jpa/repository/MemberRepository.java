@@ -1,5 +1,7 @@
 package study.kenux.jpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import study.kenux.jpa.domain.Member;
@@ -15,4 +17,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query(value = "select m from Member m " +
             "join fetch m.team")
     List<Member> findAllFetchJoin();
+
+
+    Page<Member> findAll(Pageable pageable);
 }

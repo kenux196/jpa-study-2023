@@ -22,7 +22,7 @@ public class Team {
     private String name;
 
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
-    @BatchSize(size = 100)
+    @BatchSize(size = 10)
     private List<Member> members = new ArrayList<>();
 
     public Team(String name) {
