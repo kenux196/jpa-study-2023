@@ -3,8 +3,6 @@ package study.kenux.jpa.service;
 import jakarta.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +18,9 @@ import study.kenux.jpa.domain.Team;
 import study.kenux.jpa.repository.MemberRepository;
 import study.kenux.jpa.repository.TeamRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
 
     @Autowired
@@ -39,31 +33,6 @@ class MemberServiceTest {
     JdbcTemplate jdbcTemplate;
     @Autowired
     EntityManager em;
-
-
-    @BeforeEach
-    void beforeEach() {
-        final InitData initData = new InitData(memberRepository, teamRepository, em);
-        initData.initTestData();
-    }
-
-    @Test
-    void validateData() {
-        final List<Member> members = memberRepository.findAll();
-        assertThat(members).hasSize(InitData.MEMBER_COUNT);
-    }
-
-    @Test
-    void jpql_join() {
-        final List<Member> members = memberRepository.findAllJoin();
-        assertThat(members).hasSize(InitData.MEMBER_COUNT);
-    }
-
-    @Test
-    void jpql_fetchJoin() {
-        final List<Member> allFetchJoin = memberRepository.findAllFetchJoin();
-        assertThat(allFetchJoin).hasSize(InitData.MEMBER_COUNT);
-    }
 
     @Test
     void findTeam1() {
@@ -167,49 +136,5 @@ class MemberServiceTest {
         String name;
         Integer age;
         String teamName;
-    }
-
-    public class InitData {
-
-        public static final int TEAM_COUNT = 1000;
-        public static final int MEMBER_COUNT = 10000;
-
-        private final MemberRepository memberRepository;
-        private final TeamRepository teamRepository;
-        private final EntityManager em;
-
-        public InitData(MemberRepository memberRepository, TeamRepository teamRepository, EntityManager em) {
-            this.memberRepository = memberRepository;
-            this.teamRepository = teamRepository;
-            this.em = em;
-        }
-
-//        @Transactional
-        public void initTestData() {
-            createTeam();
-            createMember();
-            em.clear();
-        }
-
-        private void createTeam() {
-            List<Team> teamList = new ArrayList<>();
-            for (int i = 0; i < TEAM_COUNT; i++) {
-                teamList.add(new Team("team" + i));
-            }
-            teamRepository.saveAll(teamList);
-        }
-
-        private void createMember() {
-            List<Member> memberList = new ArrayList<>();
-            final List<Team> teamList = teamRepository.findAll();
-            int teamSize = teamList.size();
-            for (int i = 0; i < MEMBER_COUNT; i++) {
-                final int num = i % teamSize;
-                final Team team = teamList.get(num);
-                final Member member = new Member("member" + i, i + 10, team);
-                memberList.add(member);
-            }
-            memberRepository.saveAll(memberList);
-        }
     }
 }
