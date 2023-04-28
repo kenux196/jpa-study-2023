@@ -20,8 +20,8 @@ class EntityManagerTest {
     @Test
     @Transactional
     void find() {
-//        saveMember();
-        saveMemberNotClear();
+        saveMember();
+//        saveMemberNotClear();
         log.info("find member");
         final Member member = em.find(Member.class, 1L);
         assertThat(member).isNotNull();
@@ -29,7 +29,7 @@ class EntityManagerTest {
 
     void saveMember() {
         log.info("save member = start");
-        final Member member = new Member("member1", 11);
+        final Member member = new Member("newMember", 11);
         em.persist(member);
         log.info("call em.flush");
         em.flush();
@@ -39,7 +39,7 @@ class EntityManagerTest {
 
     void saveMemberNotClear() {
         log.info("save member = start");
-        final Member member = new Member("member1", 11);
+        final Member member = new Member("newMember", 11);
         em.persist(member);
         log.info("call em.flush");
         em.flush();
