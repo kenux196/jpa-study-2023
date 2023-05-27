@@ -1,5 +1,8 @@
 package study.kenux.jpa.repository;
 
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,10 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import study.kenux.jpa.config.QuerydslConfig;
 import study.kenux.jpa.domain.Item;
-import study.kenux.jpa.domain.QItem;
-import study.kenux.jpa.domain.QStore;
 import study.kenux.jpa.domain.Store;
 
 import java.util.Arrays;
@@ -80,5 +85,64 @@ class QuerydslTest {
                 .fetch();
         assertThat(items).hasSize(itemList.size());
         System.out.println("items = " + items);
+    }
+
+    @Test
+    void findItemByCondition_itemName() {
+        final List<Item> macMini = queryFactory.select(item)
+                .from(item)
+                .where(item.name.eq("Mac Mini"))
+                .fetch();
+        assertThat(macMini).hasSize(1);
+    }
+
+    @Test
+    void findItemWithPriceSortDesc() {
+        final List<Item> items = queryFactory.select(item)
+                .from(item)
+                .orderBy(orderByPrice())
+                .fetch();
+        assertThat(items.get(0).getPrice()).isEqualTo(4000);
+    }
+
+    private OrderSpecifier<?> orderByPrice() {
+         return item.price.desc();
+    }
+
+    @Test
+    void findItemWithOderSpecifierAndPage() {
+        Sort.Order orderName = new Sort.Order(Sort.Direction.ASC, "name");
+        Sort.Order orderPrice = new Sort.Order(Sort.Direction.DESC, "price");
+        Sort sort = Sort.by(orderName, orderPrice);
+        final Pageable pageable = PageRequest.of(0, 10, sort);
+
+        final List<Item> items = queryFactory.select(item).from(item)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(sortItems(pageable))
+                .fetch();
+
+        assertThat(items).hasSize(itemList.size());
+        System.out.println("items = " + items);
+    }
+
+    private OrderSpecifier<?> sortItems(Pageable pageable) {
+        final Sort sort = pageable.getSort();
+
+        if (!sort.isEmpty()) {
+            for (Sort.Order order : sort) {
+                final Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+                switch (order.getProperty()) {
+                    case "name" -> {
+                        return new OrderSpecifier<>(direction, item.name);
+                    }
+                    case "price" -> {
+                        return new OrderSpecifier<>(direction, item.price);
+                    }
+                }
+            }
+        }
+
+        return new OrderSpecifier<>(Order.DESC, item.name);
     }
 }
