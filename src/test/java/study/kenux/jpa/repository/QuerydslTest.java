@@ -1,16 +1,18 @@
 package study.kenux.jpa.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.kenux.jpa.domain.QItem.item;
 import static study.kenux.jpa.domain.QStore.store;
@@ -161,6 +162,51 @@ class QuerydslTest {
                 }
             }
         });
+
         return orderSpecifiers.toArray(OrderSpecifier[]::new);
     }
+
+    @Test
+    void caseExpressionTest() {
+        final StringExpression cases = new CaseBuilder()
+                .when(item.price.gt(2000)).then("expensive")
+                .otherwise("free");
+
+        final List<String> result = queryFactory.select(cases)
+                .from(item)
+                .fetch();
+
+        final long freeCount = result.stream()
+                .filter(value -> value.equals("free"))
+                .count();
+        assertThat(freeCount).isEqualTo(3);
+        System.out.println("result = " + result);
+
+    }
+
+    @Test
+    void selectProperty() {
+        final List<Tuple> result = queryFactory.select(item.name, item.price).from(item).fetch();
+        System.out.println("result = " + result);
+        final List<ItemDto> itemDtoList = result.stream()
+                .map(tuple -> {
+                    final String itemName = tuple.get(0, String.class);
+                    final Integer itemPrice = tuple.get(1, Integer.class);
+                    return new ItemDto(itemName, itemPrice);
+                }).toList();
+        assertThat(itemDtoList).hasSize(itemList.size());
+    }
+
+    @Data
+    private static class ItemDto {
+        private String name;
+        private Integer price;
+
+        public ItemDto(String name, Integer price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
+
+
 }
