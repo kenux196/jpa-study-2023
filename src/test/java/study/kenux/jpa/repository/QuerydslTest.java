@@ -18,6 +18,7 @@ import study.kenux.jpa.config.QuerydslConfig;
 import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.domain.Store;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -113,13 +114,13 @@ class QuerydslTest {
     void findItemWithOderSpecifierAndPage() {
         Sort.Order orderName = new Sort.Order(Sort.Direction.ASC, "name");
         Sort.Order orderPrice = new Sort.Order(Sort.Direction.DESC, "price");
-        Sort sort = Sort.by(orderName, orderPrice);
+        Sort sort = Sort.by(orderPrice, orderName);
         final Pageable pageable = PageRequest.of(0, 10, sort);
 
         final List<Item> items = queryFactory.select(item).from(item)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(sortItems(pageable))
+                .orderBy(multiSortItem(pageable))
                 .fetch();
 
         assertThat(items).hasSize(itemList.size());
@@ -144,5 +145,22 @@ class QuerydslTest {
         }
 
         return new OrderSpecifier<>(Order.DESC, item.name);
+    }
+
+    private OrderSpecifier<?>[] multiSortItem(Pageable pageable) {
+        final Sort sort = pageable.getSort();
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+        sort.forEach(order -> {
+            final Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+            switch (order.getProperty()) {
+                case "name" -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, item.name));
+                }
+                case "price" -> {
+                    orderSpecifiers.add(new OrderSpecifier<>(direction, item.price));
+                }
+            }
+        });
+        return orderSpecifiers.toArray(OrderSpecifier[]::new);
     }
 }
