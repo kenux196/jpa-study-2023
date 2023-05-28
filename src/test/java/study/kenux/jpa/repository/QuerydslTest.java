@@ -1,8 +1,12 @@
 package study.kenux.jpa.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.annotations.QueryProjection;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -38,12 +42,14 @@ class QuerydslTest {
     @Autowired
     private JPAQueryFactory queryFactory;
 
-    List<Item> itemList = Arrays.asList(
-        new Item("Mac Mini", 1000),
-        new Item("MacBook Air", 2000),
-        new Item("MacBook Pro 14", 3000),
-        new Item("MacBook Pro 16", 4000),
-        new Item("iPad Air", 900)
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final List<Item> itemList = Arrays.asList(
+            new Item("Mac Mini", 1000),
+            new Item("MacBook Air", 2000),
+            new Item("MacBook Pro 14", 3000),
+            new Item("MacBook Pro 16", 4000),
+            new Item("iPad Air", 900)
     );
 
     @BeforeEach
@@ -108,7 +114,7 @@ class QuerydslTest {
     }
 
     private OrderSpecifier<?> orderByPrice() {
-         return item.price.desc();
+        return item.price.desc();
     }
 
     @Test
@@ -198,15 +204,61 @@ class QuerydslTest {
     }
 
     @Data
-    private static class ItemDto {
+    public static class ItemDto {
         private String name;
         private Integer price;
+        private String storeName;
 
         public ItemDto(String name, Integer price) {
             this.name = name;
             this.price = price;
         }
+
+//        @QueryProjection
+        public ItemDto(String name, Integer price, String storeName) {
+            this.name = name;
+            this.price = price;
+            this.storeName = storeName;
+        }
     }
 
+    @Test
+    void resultHandlingTest() throws JsonProcessingException {
+        final List<Tuple> result = queryFactory.select(item.name, item.price, store.name)
+                .from(item)
+                .join(item.store, store)
+                .where(item.price.gt(2000))
+                .fetch();
+
+        assertThat(result).hasSize(2);
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple.get(item.name) = " + tuple.get(item.name));
+            System.out.println("tuple.get(item.name) = " + tuple.get(item.price));
+            System.out.println("tuple.get(item.name) = " + tuple.get(store.name));
+        }
+
+        final List<ItemDto> itemDtoList = result.stream()
+                .map(row -> new ItemDto(row.get(item.name), row.get(item.price), row.get(store.name)))
+                .toList();
+        final String response = objectMapper.writeValueAsString(itemDtoList);
+        System.out.println("response = " + response);
+
+    }
+
+    @Test
+    void resultHandlingWithProjection() {
+        final List<ItemDto> result = queryFactory
+                .select(
+                        Projections.constructor(ItemDto.class, item.name, item.price, store.name)
+                )
+                .from(item)
+                .join(item.store, store)
+                .fetch();
+        assertThat(result).hasSize(itemList.size());
+        for (ItemDto itemDto : result) {
+            System.out.println("itemDto = " + itemDto);
+        }
+    }
 
 }
