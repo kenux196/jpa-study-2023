@@ -3,7 +3,6 @@ package study.kenux.jpa.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.annotations.QueryProjection;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -11,7 +10,6 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +21,8 @@ import org.springframework.data.domain.Sort;
 import study.kenux.jpa.config.QuerydslConfig;
 import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.domain.Store;
+import study.kenux.jpa.repository.dto.ItemDto;
+import study.kenux.jpa.repository.dto.QItemDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -187,7 +187,6 @@ class QuerydslTest {
                 .count();
         assertThat(freeCount).isEqualTo(3);
         System.out.println("result = " + result);
-
     }
 
     @Test
@@ -203,26 +202,7 @@ class QuerydslTest {
         assertThat(itemDtoList).hasSize(itemList.size());
     }
 
-    @Data
-    public static class ItemDto {
-        private String name;
-        private Integer price;
-        private String storeName;
-
-        public ItemDto(String name, Integer price) {
-            this.name = name;
-            this.price = price;
-        }
-
-//        @QueryProjection
-        public ItemDto(String name, Integer price, String storeName) {
-            this.name = name;
-            this.price = price;
-            this.storeName = storeName;
-        }
-    }
-
-    @Test
+     @Test
     void resultHandlingTest() throws JsonProcessingException {
         final List<Tuple> result = queryFactory.select(item.name, item.price, store.name)
                 .from(item)
@@ -261,4 +241,56 @@ class QuerydslTest {
         }
     }
 
+    @Test
+    void resultHandlingWithProjectionField() {
+        final List<ItemDto> result = queryFactory
+                .select(
+                        Projections.fields(ItemDto.class,
+                                item.name,
+                                item.price,
+//                                ExpressionUtils.as(store.name, "storeName")
+                                store.name.as("storeName")
+                        )
+                )
+                .from(item)
+                .join(item.store, store)
+                .fetch();
+        assertThat(result).hasSize(itemList.size());
+        for (ItemDto itemDto : result) {
+            System.out.println("itemDto = " + itemDto);
+        }
+    }
+
+    @Test
+    void resultHandlingWithProjectionSetter() {
+        final List<ItemDto> result = queryFactory
+                .select(
+                        Projections.bean(ItemDto.class,
+                                item.name,
+//                                item.price,
+//                                ExpressionUtils.as(store.name, "storeName")
+                                store.name.as("storeName")
+                        )
+                )
+                .from(item)
+                .join(item.store, store)
+                .fetch();
+        assertThat(result).hasSize(itemList.size());
+        for (ItemDto itemDto : result) {
+            System.out.println("itemDto = " + itemDto);
+        }
+    }
+
+    @Test
+    void resultHandlingWithProjectionEx() {
+        final List<ItemDto> result = queryFactory
+                .select(new QItemDto(item.name, item.price, store.name))
+                .from(item)
+                .join(item.store, store)
+                .fetch();
+        assertThat(result).hasSize(itemList.size());
+        for (ItemDto itemDto : result) {
+            System.out.println("itemDto = " + itemDto);
+        }
+    }
 }
