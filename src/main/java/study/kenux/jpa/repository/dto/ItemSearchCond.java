@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class ItemSearchCond {
-
     private String itemName;
-    private Integer price;
     private String storeName;
+    private Integer minPrice;
+    private Integer maxPrice;
 }

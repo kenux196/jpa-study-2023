@@ -23,9 +23,6 @@ public class InitService implements ApplicationListener<ApplicationStartedEvent>
 
     private final EntityManager em;
 
-    private static final int MEMBER_COUNT = 1000;
-    private static final int TEAM_COUNT = 100;
-
     @Override
     @Transactional
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -34,32 +31,16 @@ public class InitService implements ApplicationListener<ApplicationStartedEvent>
     }
 
     public void createTestData() {
-        createTeam();
-        createMember();
+        final TeamGenerator teamGenerator = new TeamGenerator(em);
+        teamGenerator.generate();
+
+        final MemberGenerator memberGenerator = new MemberGenerator(em);
+        memberGenerator.generate();
 
         final StoreGenerator storeGenerator = new StoreGenerator(em);
         storeGenerator.generate();
-    }
 
-    private void createTeam() {
-        for (int i = 0; i < TEAM_COUNT; i++) {
-            em.persist(new Team("team" + i));
-        }
-        em.flush();
-        em.clear();
-    }
-
-    private void createMember() {
-        final List<Team> teamList =
-                em.createQuery("select t from Team t", Team.class)
-                        .getResultList();
-        int teamSize = teamList.size();
-        for (int i = 0; i < MEMBER_COUNT; i++) {
-            final int num = i % teamSize;
-            final Team team = teamList.get(num);
-            em.persist(new Member("member" + i, i + 10, team));
-        }
-        em.flush();
-        em.clear();
+        final ItemGenerator itemGenerator = new ItemGenerator(em);
+        itemGenerator.generate();
     }
 }
