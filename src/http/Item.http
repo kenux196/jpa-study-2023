@@ -3,3 +3,9 @@ GET http://localhost:8080/items?page=0&size=10
 
 ### get item with page and sort
 GET http://localhost:8080/items?page=0&size=10&sort=price,desc
+
+### get item with page and multi sort (price, item name)
+GET http://localhost:8080/items?page=0&size=10&sort=price,desc&sort=itemName,desc
+
+### get item with page and multi sort (price, item name, store name)
+GET http://localhost:8080/items?page=0&size=10&sort=price,desc&sort=itemName,desc&sort=store,asc

@@ -87,7 +87,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
             String property = order.getProperty();
             switch (property) {
                 case "price" -> orderSpecifiers.add(new OrderSpecifier<>(direction, item.price));
-                case "storeName" -> orderSpecifiers.add(new OrderSpecifier<>(direction, item.store.name));
+                case "store" -> orderSpecifiers.add(new OrderSpecifier<>(direction, item.store.name));
                 default -> orderSpecifiers.add(new OrderSpecifier<>(direction, item.name));
             }
         }
