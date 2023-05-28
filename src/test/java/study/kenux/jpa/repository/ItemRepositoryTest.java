@@ -35,12 +35,14 @@ import static study.kenux.jpa.domain.QStore.store;
 
 @DataJpaTest
 @Import(QuerydslConfig.class)
-class QuerydslTest {
+class ItemRepositoryTest {
 
     @Autowired
     private EntityManager em;
     @Autowired
     private JPAQueryFactory queryFactory;
+    @Autowired
+    private ItemRepository itemRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

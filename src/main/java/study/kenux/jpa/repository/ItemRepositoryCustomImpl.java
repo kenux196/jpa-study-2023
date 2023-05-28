@@ -4,20 +4,18 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import study.kenux.jpa.domain.Item;
+import study.kenux.jpa.repository.dto.ItemSearchCond;
 
 import java.util.List;
 
-import static study.kenux.jpa.domain.QItem.item;
-
 @Repository
 @RequiredArgsConstructor
-public class ItemCustomRepository {
+public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    public List<Item> findAll() {
-        return queryFactory.select(item)
-                .from(item)
-                .fetch();
+    @Override
+    public List<Item> findByCondition(ItemSearchCond cond) {
+        return null;
     }
 }
