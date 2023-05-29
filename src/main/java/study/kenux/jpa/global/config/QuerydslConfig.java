@@ -1,4 +1,4 @@
-package study.kenux.jpa.config;
+package study.kenux.jpa.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

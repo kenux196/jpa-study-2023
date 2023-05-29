@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import study.kenux.jpa.config.QuerydslConfig;
+import study.kenux.jpa.global.config.QuerydslConfig;
 import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.domain.Store;
 import study.kenux.jpa.repository.dto.ItemDto;
@@ -27,7 +27,6 @@ import study.kenux.jpa.repository.dto.QItemDto;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.kenux.jpa.domain.QItem.item;
