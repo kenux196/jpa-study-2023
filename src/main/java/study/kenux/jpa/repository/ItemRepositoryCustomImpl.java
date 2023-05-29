@@ -13,8 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 import study.kenux.jpa.domain.Item;
-import study.kenux.jpa.domain.QItem;
-import study.kenux.jpa.domain.QStore;
 import study.kenux.jpa.repository.dto.ItemSearchCond;
 
 import java.util.ArrayList;
