@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
-import study.kenux.jpa.config.QuerydslConfig;
+import study.kenux.jpa.global.config.QuerydslConfig;
 import study.kenux.jpa.domain.Member;
 import study.kenux.jpa.domain.Team;
 
