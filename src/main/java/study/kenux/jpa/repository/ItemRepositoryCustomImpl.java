@@ -63,7 +63,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
     private BooleanExpression rangeItemPrice(ItemSearchCond cond) {
         if (cond.getMinPrice() != null && cond.getMaxPrice() != null) {
-            return item.price.gt(cond.getMinPrice()).and(item.price.lt(cond.getMaxPrice()));
+            return item.price.between(cond.getMinPrice(), cond.getMaxPrice());
         }
 
         if (cond.getMinPrice() != null) {
