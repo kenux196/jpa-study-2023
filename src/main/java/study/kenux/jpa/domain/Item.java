@@ -50,6 +50,10 @@ public class Item {
     }
 
     public void setStore(Store store) {
+        if (this.store != null) {
+            this.store.getItems().remove(this);
+        }
         this.store = store;
+        store.getItems().add(this);
     }
 }

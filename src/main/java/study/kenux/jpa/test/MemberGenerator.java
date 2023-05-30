@@ -18,7 +18,7 @@ public class MemberGenerator extends DataGenerator {
             new Member("MemberE", 50)
     );
 
-    protected MemberGenerator(EntityManager em) {
+    public MemberGenerator(EntityManager em) {
         super(em);
     }
 
