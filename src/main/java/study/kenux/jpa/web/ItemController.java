@@ -12,6 +12,7 @@ import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.repository.ItemRepository;
 import study.kenux.jpa.repository.dto.ItemSearchCond;
 import study.kenux.jpa.service.ItemService;
+import study.kenux.jpa.service.ItemServiceNoTransaction;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ItemServiceNoTransaction itemServiceNoTransaction;
     private final ItemRepository itemRepository;
 
     @GetMapping
@@ -38,5 +40,17 @@ public class ItemController {
         final Item serviceItem = itemService.getItem(itemId);
 
         return ResponseEntity.ok("Ok");
+    }
+
+    @GetMapping("/test1")
+    public ResponseEntity<?> testTransaction() {
+        itemService.test();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/test2")
+    public ResponseEntity<?> testNoTransaction() {
+        itemServiceNoTransaction.test();
+        return ResponseEntity.ok().build();
     }
 }

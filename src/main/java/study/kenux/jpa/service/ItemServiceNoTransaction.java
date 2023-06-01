@@ -1,6 +1,5 @@
 package study.kenux.jpa.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,13 +16,13 @@ import study.kenux.jpa.repository.dto.ItemSearchCond;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
-public class ItemService {
+public class ItemServiceNoTransaction {
 
     private final ItemRepository itemRepository;
     private final MemberRepository memberRepository;
+
 
     @Transactional
     public void save(Item item) {
@@ -39,11 +38,6 @@ public class ItemService {
     public Page<ItemDto> findAllItemWithPage(ItemSearchCond cond, Pageable pageable) {
         final Page<Item> items = itemRepository.findByConditionWithPage(cond, pageable);
         return items.map(ItemDto::from);
-    }
-
-    public Item getItem(Long itemId) {
-        return itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Not exist itemId = " + itemId));
     }
 
     public void test() {

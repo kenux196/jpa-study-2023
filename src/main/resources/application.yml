@@ -1,4 +1,3 @@
-
 spring:
   jpa:
     properties:
@@ -8,7 +7,15 @@ spring:
 #        default_batch_fetch_size: 100
 #    open-in-view: false
     show-sql: false
-
+  datasource:
+    url:  jdbc:h2:mem:testdb;DATABASE_TO_LOWER=TRUE;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    hikari:
+      minimum-idle: 10  # default 10
+      maximum-pool-size: 10  # default 10
+#      idle-timeout: 600000  # default 600000(10분)
+#      max-lifetime: 1800000 # default 1800000(30분)
 logging:
   level:
     org:
@@ -19,14 +26,15 @@ logging:
           descriptor:
             sql: trace
       springframework:
-#        web: debug
-#        transaction:
-#          interceptor: TRACE
+        security: debug
+        web: debug
+        transaction:
+          interceptor: TRACE
         orm:
           jpa:
             JpaTransactionManager: DEBUG
         jdbc:
           datasource:
             DataSourceTransactionManager: DEBUG
-      com.zaxxer.hikari: TRACE
-      com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
+    com.zaxxer.hikari.HikariConfig: DEBUG

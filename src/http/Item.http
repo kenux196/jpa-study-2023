@@ -19,3 +19,9 @@ GET http://localhost:8080/items?itemName=iPad
 
 ### get item
 GET http://localhost:8080/items/1
+
+### transaction
+GET http://localhost:8080/items/test1
+
+### no transaction
+GET http://localhost:8080/items/test2
