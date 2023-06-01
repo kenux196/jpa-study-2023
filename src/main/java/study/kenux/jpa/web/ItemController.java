@@ -1,9 +1,13 @@
 package study.kenux.jpa.web;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +23,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
+@Slf4j
 public class ItemController {
 
     private final ItemService itemService;
@@ -34,10 +39,15 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
+    @Transactional
     public ResponseEntity<?> getItem(@PathVariable Long itemId) {
+        log.info("start---------------------------");
         final Optional<Item> item = itemRepository.findById(itemId);
-
-        final Item serviceItem = itemService.getItem(itemId);
+        log.info("find using repository directly -------------------------------- item = {} {}", item, item.get().getName());
+        item.get().changeItemName("changed");
+//        final Item serviceItem = itemService.getItem(itemId);
+        final Optional<Item> item2 = itemRepository.findById(itemId);
+        log.info("find item with service layer ------------------------ item2 = {} {}", item2, item2.get().getName());
 
         return ResponseEntity.ok("Ok");
     }
