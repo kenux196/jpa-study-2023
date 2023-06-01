@@ -31,7 +31,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     public Page<Item> findByConditionWithPage(ItemSearchCond cond, Pageable pageable) {
         final JPAQuery<Item> itemJPAQuery = queryFactory.select(item)
                 .from(item)
-                .join(item.store, store)
+                .join(item.store, store).fetchJoin()
                 .where(containItemName(cond), containStoreName(cond), rangeItemPrice(cond));
 
         final List<Item> items = itemJPAQuery

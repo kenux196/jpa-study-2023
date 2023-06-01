@@ -15,3 +15,7 @@ GET http://localhost:8080/items?minPrice=2000&maxPrice=3000
 
 ### get item by item name (iPad)
 GET http://localhost:8080/items?itemName=iPad
+
+
+### get item
+GET http://localhost:8080/items/1
