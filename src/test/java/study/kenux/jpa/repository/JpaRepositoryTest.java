@@ -10,24 +10,19 @@ import org.springframework.context.annotation.Import;
 import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.domain.Store;
 import study.kenux.jpa.global.config.QuerydslConfig;
-import study.kenux.jpa.test.ItemGenerator;
-import study.kenux.jpa.test.MemberGenerator;
-import study.kenux.jpa.test.StoreGenerator;
-import study.kenux.jpa.test.TeamGenerator;
+import study.kenux.jpa.test.*;
 
 import java.util.List;
 
 @DataJpaTest
 @Import(QuerydslConfig.class)
-public class JpaRepositoryTest {
+class JpaRepositoryTest {
 
     @Autowired
     EntityManager em;
 
-
     @BeforeEach
     void setup() {
-
         final TeamGenerator teamGenerator = new TeamGenerator(em);
         teamGenerator.generate();
         final MemberGenerator memberGenerator = new MemberGenerator(em);
@@ -36,6 +31,8 @@ public class JpaRepositoryTest {
         storeGenerator.generate();
         final ItemGenerator itemGenerator = new ItemGenerator(em);
         itemGenerator.generate();
+        final BoardDataGenerator boardDataGenerator = new BoardDataGenerator(em);
+        boardDataGenerator.generate();
     }
 
     @Test

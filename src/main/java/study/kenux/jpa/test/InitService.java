@@ -20,6 +20,8 @@ public class InitService implements ApplicationListener<ApplicationStartedEvent>
     public void onApplicationEvent(ApplicationStartedEvent event) {
         log.info("application started. will be set up test data");
         createTestData();
+        em.flush();
+        em.clear();
     }
 
     public void createTestData() {
@@ -34,5 +36,9 @@ public class InitService implements ApplicationListener<ApplicationStartedEvent>
 
         final ItemGenerator itemGenerator = new ItemGenerator(em);
         itemGenerator.generate();
+
+        final BoardDataGenerator boardDataGenerator = new BoardDataGenerator(em);
+        boardDataGenerator.generate();
+
     }
 }
