@@ -28,7 +28,7 @@ public class BoardDataGenerator extends DataGenerator {
         for (int i = 0; i < BOARD_TEST_DATA_COUNT; i++) {
             Board board = Board.builder()
                     .title("Board Title-" + i)
-                    .contents(UUID.randomUUID().toString())
+                    .content(UUID.randomUUID().toString())
                     .createdDate(BASE_DATE_TIME.plusHours(i))
                     .modifiedDate(BASE_DATE_TIME.plusHours(i + 1))
                     .member(members.get(i % memberCount))

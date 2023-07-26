@@ -15,7 +15,7 @@ import study.kenux.jpa.test.*;
 import java.util.List;
 
 @DataJpaTest
-@Import(QuerydslConfig.class)
+@Import({QuerydslConfig.class})
 class JpaRepositoryTest {
 
     @Autowired
@@ -33,6 +33,8 @@ class JpaRepositoryTest {
         itemGenerator.generate();
         final BoardDataGenerator boardDataGenerator = new BoardDataGenerator(em);
         boardDataGenerator.generate();
+        em.flush();
+        em.clear();
     }
 
     @Test

@@ -18,7 +18,7 @@ public class Board {
 
     private String title;
 
-    private String contents;
+    private String content;
 
     private OffsetDateTime createdDate;
 
@@ -29,9 +29,9 @@ public class Board {
     private Member member;
 
     @Builder
-    public Board(String title, String contents, OffsetDateTime createdDate, OffsetDateTime modifiedDate, Member member) {
+    public Board(String title, String content, OffsetDateTime createdDate, OffsetDateTime modifiedDate, Member member) {
         this.title = title;
-        this.contents = contents;
+        this.content = content;
         this.createdDate = createdDate;
         this.modifiedDate = modifiedDate;
         this.member = member;
