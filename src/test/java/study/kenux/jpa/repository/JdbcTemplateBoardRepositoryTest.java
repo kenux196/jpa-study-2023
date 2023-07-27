@@ -7,13 +7,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import study.kenux.jpa.domain.Board;
 import study.kenux.jpa.domain.Member;
 import study.kenux.jpa.global.config.QuerydslConfig;
+import study.kenux.jpa.service.dto.BoardInfo;
 import study.kenux.jpa.test.BoardDataGenerator;
 import study.kenux.jpa.test.MemberDataGenerator;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -28,6 +34,8 @@ class JdbcTemplateBoardRepositoryTest {
     private JdbcTemplateBoardRepository boardRepository;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private BoardDataGenerator boardDataGenerator;
     private MemberDataGenerator memberDataGenerator;
@@ -80,6 +88,60 @@ class JdbcTemplateBoardRepositoryTest {
                 .filter(board -> board.getMember().getName().equals(member.getName()))
                 .count();
         assertThat(count).isEqualTo(expectedCount);
+    }
+
+    @Test
+    void testQueryForObject_RowMapper() {
+        String sql = "select b.id, b.title, b.created_date as createdDate, b.modified_date as modifiedDate, m.name as writer " +
+                "from board b " +
+                "join member m on m.id = b.member_id " +
+                "where b.id = ?";
+        final BoardInfo boardInfo = jdbcTemplate.queryForObject(sql, boardInfoRowMapper(), 1L);
+        System.out.println("boardInfo = " + boardInfo);
+        assertThat(boardInfo.getId()).isEqualTo(1);
+    }
+
+    @Test
+    void testQueryMethod() {
+        final Member member = memberDataGenerator.getMemberList().get(3);
+        String sql = "select b.id, b.title, b.created_date as createdDate, b.modified_date as modifiedDate, m.name as writer " +
+                "from board b " +
+                "join member m on m.id = b.member_id " +
+                "where m.name = ?";
+        final List<BoardInfo> result = jdbcTemplate.query(sql, boardInfoRowMapper(), member.getName());
+
+        final long expectedCount = boardDataGenerator.getBoards().stream()
+                .filter(board -> member.getName().equals(board.getMember().getName()))
+                .count();
+        assertThat(result).hasSize((int) expectedCount);
+    }
+
+    @Test
+    void testUsingNamedParameterJdbcTemplate() {
+        final Member member = memberDataGenerator.getMemberList().get(3);
+        String sql = "select b.id, b.title, b.created_date as createdDate, b.modified_date as modifiedDate, m.name as writer " +
+                "from board b " +
+                "join member m on m.id = b.member_id " +
+                "where m.name = :name";
+
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("name", member.getName());
+        final List<BoardInfo> result = namedParameterJdbcTemplate.query(sql, params, boardInfoRowMapper());
+
+        final long expectedCount = boardDataGenerator.getBoards().stream()
+                .filter(board -> member.getName().equals(board.getMember().getName()))
+                .count();
+        assertThat(result).hasSize((int) expectedCount);
+    }
+
+    private RowMapper<BoardInfo> boardInfoRowMapper() {
+        return ((rs, rowNum) -> BoardInfo.builder()
+                .id(rs.getLong("id"))
+                .title(rs.getString("title"))
+                .createdDate(rs.getObject("createdDate", OffsetDateTime.class))
+                .modifiedDate(rs.getObject("modifiedDate", OffsetDateTime.class))
+                .writer(rs.getString("writer"))
+                .build());
     }
 
     private int getBoardTotalCount() {
