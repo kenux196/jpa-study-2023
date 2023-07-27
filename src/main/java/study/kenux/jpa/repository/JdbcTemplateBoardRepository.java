@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class BoardJdbcTemplateRepository {
+public class JdbcTemplateBoardRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public void save(Board board) {

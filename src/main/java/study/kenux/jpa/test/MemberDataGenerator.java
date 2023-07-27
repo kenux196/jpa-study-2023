@@ -1,6 +1,8 @@
 package study.kenux.jpa.test;
 
 import jakarta.persistence.EntityManager;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import study.kenux.jpa.domain.Member;
 import study.kenux.jpa.domain.Team;
 
@@ -8,8 +10,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class MemberGenerator extends DataGenerator {
+@RequiredArgsConstructor
+@Getter
+public class MemberDataGenerator {
 
+    private final EntityManager em;
     private final List<Member> memberList = Arrays.asList(
             new Member("MemberA", 10),
             new Member("MemberB", 20),
@@ -18,15 +23,7 @@ public class MemberGenerator extends DataGenerator {
             new Member("MemberE", 50)
     );
 
-    public MemberGenerator(EntityManager em) {
-        super(em);
-    }
-
-    @Override
-    public void generate() {
-        final List<Team> teamList = em.createQuery("select t from Team t", Team.class)
-                .getResultList();
-
+    public void generate(List<Team> teamList) {
         final Optional<Team> teamA = teamList.stream()
                 .filter(team -> team.getName().equals("TeamA"))
                 .findAny();
@@ -34,5 +31,17 @@ public class MemberGenerator extends DataGenerator {
             member.changeTeam(team);
             em.persist(member);
         }));
+        em.flush();
+        em.clear();
+    }
+
+    public void generate() {
+        memberList.forEach(em::persist);
+        em.flush();
+        em.clear();
+    }
+
+    public int getMemberCount() {
+        return memberList.size();
     }
 }

@@ -25,20 +25,19 @@ public class InitService implements ApplicationListener<ApplicationStartedEvent>
     }
 
     public void createTestData() {
-        final TeamGenerator teamGenerator = new TeamGenerator(em);
-        teamGenerator.generate();
+        final TeamDataGenerator teamDataGenerator = new TeamDataGenerator(em);
+        teamDataGenerator.generate();
 
-        final MemberGenerator memberGenerator = new MemberGenerator(em);
-        memberGenerator.generate();
+        final MemberDataGenerator memberDataGenerator = new MemberDataGenerator(em);
+        memberDataGenerator.generate(teamDataGenerator.getTeamList());
 
-        final StoreGenerator storeGenerator = new StoreGenerator(em);
-        storeGenerator.generate();
+        final StoreDataGenerator storeDataGenerator = new StoreDataGenerator(em);
+        storeDataGenerator.generate();
 
-        final ItemGenerator itemGenerator = new ItemGenerator(em);
-        itemGenerator.generate();
+        final ItemDataGenerator itemDataGenerator = new ItemDataGenerator(em);
+        itemDataGenerator.generate(storeDataGenerator.getStoreList());
 
         final BoardDataGenerator boardDataGenerator = new BoardDataGenerator(em);
-        boardDataGenerator.generate();
-
+        boardDataGenerator.generate(memberDataGenerator.getMemberList());
     }
 }

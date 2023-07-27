@@ -1,14 +1,23 @@
 package study.kenux.jpa.test;
 
 import jakarta.persistence.EntityManager;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import study.kenux.jpa.domain.Item;
 import study.kenux.jpa.domain.Store;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-public class ItemGenerator extends DataGenerator {
+@RequiredArgsConstructor
+@Getter
+public class ItemDataGenerator {
+
+    private final EntityManager em;
+
+    @Getter
     private final List<Item> itemList = Arrays.asList(
             new Item("Mac Mini", 1000),
             new Item("MacBook Air", 2000),
@@ -17,22 +26,25 @@ public class ItemGenerator extends DataGenerator {
             new Item("iPad Air", 900)
     );
 
-    public ItemGenerator(EntityManager em) {
-        super(em);
-    }
-
-    @Override
     @Transactional
-    public void generate() {
-        final Store appleStore = em.createQuery("select s from Store s where s.name = :storeName", Store.class)
-                .setParameter("storeName", "Apple Store")
-                .getSingleResult();
+    public void generate(List<Store> stores) {
+        final Optional<Store> appleStore = stores.stream()
+                .filter(store -> store.getName().equals("Apple Store"))
+                .findFirst();
+
+        if (appleStore.isEmpty()) {
+            throw new IllegalStateException("store not founded");
+        }
 
         itemList.forEach(item -> {
-            item.setStore(appleStore);
+            item.setStore(appleStore.get());
             em.persist(item);
         });
         em.flush();
         em.clear();
+    }
+
+    public int getItemCount() {
+        return itemList.size();
     }
 }

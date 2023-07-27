@@ -40,8 +40,6 @@ class ItemRepositoryTest {
     private EntityManager em;
     @Autowired
     private JPAQueryFactory queryFactory;
-    @Autowired
-    private ItemRepository itemRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

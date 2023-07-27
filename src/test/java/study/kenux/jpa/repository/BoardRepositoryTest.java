@@ -1,39 +1,52 @@
 package study.kenux.jpa.repository;
 
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import study.kenux.jpa.domain.Board;
-import study.kenux.jpa.domain.Member;
+import study.kenux.jpa.global.config.QuerydslConfig;
+import study.kenux.jpa.test.*;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static study.kenux.jpa.test.BoardDataGenerator.BOARD_TEST_DATA_COUNT;
 
 
-@Import(BoardJdbcTemplateRepository.class)
-class BoardRepositoryTest extends JpaRepositoryTest {
+@DataJpaTest
+@Import(QuerydslConfig.class)
+class BoardRepositoryTest {
 
+    @Autowired
+    private EntityManager em;
     @Autowired
     private BoardRepository boardRepository;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private BoardJdbcTemplateRepository boardJdbcTemplateRepository;
+
+    private BoardDataGenerator boardDataGenerator;
 
     private final int page = 0;
     private final int size = 10;
 
+    @BeforeEach
+    void setup() {
+        MemberDataGenerator memberDataGenerator = new MemberDataGenerator(em);
+        memberDataGenerator.generate();
+        boardDataGenerator = new BoardDataGenerator(em);
+        boardDataGenerator.generate(memberDataGenerator.getMemberList());
+        em.flush();
+        em.clear();
+    }
+
     @Test
     void testFindAll() {
         final List<Board> boardList = boardRepository.findAll();
-        assertThat(boardList).hasSize(BOARD_TEST_DATA_COUNT);
+        assertThat(boardList).hasSize(getBoardDataCount());
         System.out.println("boardList.get(0) = " + boardList.get(0));
     }
 
@@ -43,8 +56,8 @@ class BoardRepositoryTest extends JpaRepositoryTest {
         final Page<Board> result = getPagedBoard(pageable);
 
         assertThat(result.getSize()).isEqualTo(10);
-        assertThat(result.getTotalPages()).isEqualTo(BOARD_TEST_DATA_COUNT / size);
-        assertThat(result.getTotalElements()).isEqualTo(BOARD_TEST_DATA_COUNT);
+        assertThat(result.getTotalPages()).isEqualTo(getBoardDataCount() / size);
+        assertThat(result.getTotalElements()).isEqualTo(getBoardDataCount());
 
         System.out.println("result = " + result);
         display(result.getContent());
@@ -72,28 +85,7 @@ class BoardRepositoryTest extends JpaRepositoryTest {
         boards.forEach(board -> System.out.println("board = " + board));
     }
 
-    @Test
-    void saveWithJdbcTemplate() {
-        // given
-        final Member member = memberRepository.findById(1L)
-                .orElseThrow(() -> new IllegalStateException("Member not exist"));
-        final Board newBoard = Board.builder()
-                .title("The new title")
-                .content("The new contents")
-                .createdDate(OffsetDateTime.now())
-                .modifiedDate(OffsetDateTime.now())
-                .member(member)
-                .build();
-
-        // when
-        boardJdbcTemplateRepository.save(newBoard);
-        em.flush();
-        em.clear();
-
-        final Board result = em.createQuery("select b from Board b where b.title = 'The new title'", Board.class)
-                .getSingleResult();
-
-        // then
-        assertThat(result).isNotNull();
+    private int getBoardDataCount() {
+        return boardDataGenerator.getBoards().size();
     }
 }

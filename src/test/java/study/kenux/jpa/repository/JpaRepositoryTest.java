@@ -23,16 +23,16 @@ class JpaRepositoryTest {
 
     @BeforeEach
     void setup() {
-        final TeamGenerator teamGenerator = new TeamGenerator(em);
-        teamGenerator.generate();
-        final MemberGenerator memberGenerator = new MemberGenerator(em);
-        memberGenerator.generate();
-        final StoreGenerator storeGenerator = new StoreGenerator(em);
-        storeGenerator.generate();
-        final ItemGenerator itemGenerator = new ItemGenerator(em);
-        itemGenerator.generate();
+        final TeamDataGenerator teamDataGenerator = new TeamDataGenerator(em);
+        teamDataGenerator.generate();
+        final MemberDataGenerator memberDataGenerator = new MemberDataGenerator(em);
+        memberDataGenerator.generate();
+        final StoreDataGenerator storeDataGenerator = new StoreDataGenerator(em);
+        storeDataGenerator.generate();
+        final ItemDataGenerator itemDataGenerator = new ItemDataGenerator(em);
+        itemDataGenerator.generate(storeDataGenerator.getStoreList());
         final BoardDataGenerator boardDataGenerator = new BoardDataGenerator(em);
-        boardDataGenerator.generate();
+        boardDataGenerator.generate(memberDataGenerator.getMemberList());
         em.flush();
         em.clear();
     }
