@@ -1,0 +1,2 @@
+### get item with page
+GET http://localhost:8080/boards?page=0&size=10
