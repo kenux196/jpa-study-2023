@@ -1,2 +1,5 @@
-### get item with page
+### get board with page
 GET http://localhost:8080/boards?page=0&size=10
+
+### get board with page & sort
+GET http://localhost:8080/boards?page=0&size=10&sort=title,desc&sort=createdDate,desc
