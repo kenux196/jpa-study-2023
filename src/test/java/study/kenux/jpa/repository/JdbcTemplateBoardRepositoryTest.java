@@ -76,7 +76,10 @@ class JdbcTemplateBoardRepositoryTest {
 
         final Integer count = jdbcTemplate.queryForObject(sql, Integer.class, member.getName());
 
-//        assertThat()
+        final long expectedCount = boardDataGenerator.getBoards().stream()
+                .filter(board -> board.getMember().getName().equals(member.getName()))
+                .count();
+        assertThat(count).isEqualTo(expectedCount);
     }
 
     private int getBoardTotalCount() {
