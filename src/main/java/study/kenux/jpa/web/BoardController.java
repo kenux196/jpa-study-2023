@@ -19,7 +19,12 @@ public class BoardController {
     private final BoardService boardService;
 
     @GetMapping
-    public ResponseEntity<?> getBoard(Pageable pageable) {
+    public ResponseEntity<?> getBoard() {
+        return ResponseEntity.ok(boardService.getBoards());
+    }
+
+    @GetMapping("/paged")
+    public ResponseEntity<?> getBoardPaged(Pageable pageable) {
         final Page<BoardInfo> boards = boardService.getBoards(pageable);
         return ResponseEntity.ok(boards);
     }
