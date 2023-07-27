@@ -5,8 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import study.kenux.jpa.repository.BoardJdbcTemplateRepository;
 import study.kenux.jpa.repository.BoardRepository;
+import study.kenux.jpa.repository.JdbcTemplateBoardRepository;
 import study.kenux.jpa.service.dto.BoardInfo;
 
 import java.util.List;
@@ -17,10 +17,10 @@ import java.util.List;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final BoardJdbcTemplateRepository boardJdbcTemplateRepository;
+    private final JdbcTemplateBoardRepository jdbcTemplateBoardRepository;
 
     public List<BoardInfo> getBoards() {
-        return boardJdbcTemplateRepository.findAllBoard();
+        return jdbcTemplateBoardRepository.findAllBoard();
     }
 
     public Page<BoardInfo> getBoards(Pageable pageable) {
