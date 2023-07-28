@@ -98,7 +98,7 @@ class BoardRepositoryTest {
         BoardSearchCond cond = new BoardSearchCond();
         cond.setWriter(member.getName());
 
-        final Sort sort = Sort.by(Sort.Order.desc("createdTime"));
+        final Sort sort = Sort.by(Sort.Order.desc("createdDate"));
         final PageRequest pageRequest = PageRequest.of(0, 10, sort);
 
         final Page<Board> result = boardRepository.findBoardByCondition(cond, pageRequest);
@@ -108,5 +108,6 @@ class BoardRepositoryTest {
                 .count();
 
         assertThat(result.getTotalPages()).isEqualTo(count / 10);
+        result.getContent().forEach(board -> System.out.println("board = " + board));
     }
 }
