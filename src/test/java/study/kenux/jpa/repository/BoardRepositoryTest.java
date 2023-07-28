@@ -11,7 +11,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import study.kenux.jpa.domain.Board;
+import study.kenux.jpa.domain.Member;
 import study.kenux.jpa.global.config.QuerydslConfig;
+import study.kenux.jpa.repository.dto.BoardSearchCond;
 import study.kenux.jpa.test.*;
 
 import java.util.List;
@@ -29,13 +31,14 @@ class BoardRepositoryTest {
     private BoardRepository boardRepository;
 
     private BoardDataGenerator boardDataGenerator;
+    private MemberDataGenerator memberDataGenerator;
 
     private final int page = 0;
     private final int size = 10;
 
     @BeforeEach
     void setup() {
-        MemberDataGenerator memberDataGenerator = new MemberDataGenerator(em);
+        memberDataGenerator = new MemberDataGenerator(em);
         memberDataGenerator.generate();
         boardDataGenerator = new BoardDataGenerator(em);
         boardDataGenerator.generate(memberDataGenerator.getMemberList());
@@ -87,5 +90,23 @@ class BoardRepositoryTest {
 
     private int getBoardDataCount() {
         return boardDataGenerator.getBoards().size();
+    }
+
+    @Test
+    void testFindAllWithCondition() {
+        final Member member = memberDataGenerator.getMemberList().get(0);
+        BoardSearchCond cond = new BoardSearchCond();
+        cond.setWriter(member.getName());
+
+        final Sort sort = Sort.by(Sort.Order.desc("createdTime"));
+        final PageRequest pageRequest = PageRequest.of(0, 10, sort);
+
+        final Page<Board> result = boardRepository.findBoardByCondition(cond, pageRequest);
+
+        final long count = boardDataGenerator.getBoards().stream()
+                .filter(board -> member.getName().equals(board.getMember().getName()))
+                .count();
+
+        assertThat(result.getTotalPages()).isEqualTo(count / 10);
     }
 }
