@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -20,6 +21,7 @@ import study.kenux.jpa.test.MemberDataGenerator;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -92,13 +94,24 @@ class JdbcTemplateBoardRepositoryTest {
 
     @Test
     void testQueryForObject_RowMapper() {
+        final Board board = boardDataGenerator.getBoards().get(0);
         String sql = "select b.id, b.title, b.created_date as createdDate, b.modified_date as modifiedDate, m.name as writer " +
                 "from board b " +
                 "join member m on m.id = b.member_id " +
                 "where b.id = ?";
-        final BoardInfo boardInfo = jdbcTemplate.queryForObject(sql, boardInfoRowMapper(), 1L);
-        System.out.println("boardInfo = " + boardInfo);
-        assertThat(boardInfo.getId()).isEqualTo(1);
+
+        final Optional<BoardInfo> boardInfo = getBoardInfo(sql, board.getId());
+        assertThat(boardInfo).isPresent();
+        System.out.println("boardInfo = " + boardInfo.get());
+        assertThat(boardInfo.get().getTitle()).isEqualTo(board.getTitle());
+    }
+
+    private Optional<BoardInfo> getBoardInfo(String sql, Long boardId) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, boardInfoRowMapper(), boardId));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Test
