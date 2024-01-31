@@ -20,6 +20,7 @@ public class Pet {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "pet_type", nullable = false)
     private PetType petType;
 
