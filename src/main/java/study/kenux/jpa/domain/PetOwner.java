@@ -10,7 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @Table(name = "pet_owner")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@DynamicUpdate
+//@DynamicUpdate
 public class PetOwner {
 
     @Id
